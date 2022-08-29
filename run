@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+
+
+# echo $1;
+
+dest="$1/main";
+source="$1/main.cpp";
+
+if [ -z "$1" ]
+  then
+    echo "No argument supplied!";
+    exit 0;
+elif [ ! -f "$source" ]
+    then
+        echo "File '$source' not found!";
+fi
+
+echo "Generating file...";
+make -s "$source" "$dest";
+echo "Running file: $dest";
+echo "";
+./$dest
