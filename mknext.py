@@ -47,11 +47,16 @@ def get_new_project_name():
     res = sys.argv[1] if len(sys.argv) > 1 else input("Project name?  ")
     return res.strip().replace(" ", "-").lower()
 
+# get values
 num = str(get_highest()+1).zfill(2)
 title = get_new_project_name()
 target = Path(f"{num}-{title}")
+
+# make folder
 print("Creating folder at path:", target)
 target.mkdir()
+
+# write to ./main.cpp
 main_file = target / "main.cpp"
 main_file.write_text(FILLER_TEXT)
 (target / "main.cpp").touch()
