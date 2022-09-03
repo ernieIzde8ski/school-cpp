@@ -16,7 +16,7 @@ elif [ ! -f "$source" ]
 fi
 
 echo "Generating file...";
-make -s "$source" "$dest";
-echo "Running file: $dest";
-echo "";
-./$dest
+make "$source" "$dest" && {
+  printf "\nRunning file: $dest\n\n";
+  ./$dest;
+}
