@@ -29,6 +29,7 @@ int main() {
 root = Path(__file__).parent
 _pattern = re.compile(r"(\d\d)(-.+)+")
 
+
 def get_highest():
     """Returns the highest numbered project in this folder."""
     current_highest: int = -1
@@ -41,14 +42,17 @@ def get_highest():
             current_highest = max(current_highest, n)
     return current_highest
 
+
 def get_new_project_name():
     """Asks for a project name if none is provided."""
     import sys
+
     res = sys.argv[1] if len(sys.argv) > 1 else input("Project name?  ")
     return res.strip().replace(" ", "-").lower()
 
+
 # get values
-num = str(get_highest()+1).zfill(2)
+num = str(get_highest() + 1).zfill(2)
 title = get_new_project_name()
 target = Path(f"{num}-{title}")
 
