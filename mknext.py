@@ -40,8 +40,11 @@ class Settings(Tap):
     ## extra type validation and such
     def configure(self) -> None:
         # this is called after class initialization
-        # make one arguments positional
+        # make arguments positional/aliased
         self.add_argument("title")
+        self.add_argument("-D", "--description")
+        self.add_argument("-N", "--nonschool")
+        self.add_argument("-S", "--student")
 
     def process_args(self) -> None:
         # this is called after .parse_args
