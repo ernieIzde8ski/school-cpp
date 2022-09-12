@@ -1,0 +1,2 @@
+black>=22.8.0                 # formatting
+typed-argument-parser>=1.7.2  # command-line argument parsing
