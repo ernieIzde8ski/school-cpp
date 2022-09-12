@@ -4,17 +4,22 @@
 Quickly handles creating the next directory.
 """
 
-from pathlib import Path
-import re
-
 
 if __name__ != "__main__":
     raise RuntimeError("mknext.py cannot be a module!")
 
-FILLER_TEXT = r"""/*
-  Ernest Izdebski, %DATE%
 
-  %DESCRIPTION%
+import re
+from datetime import datetime
+from pathlib import Path
+
+from tap import Tap
+
+
+FILLER_TEXT = r"""/*
+  {STUDENT}, {DATE}
+
+  {DESCRIPTION}
 */
 
 #include <iostream>
@@ -26,41 +31,63 @@ int main() {
 """
 
 
-root = Path(__file__).parent
-_pattern = re.compile(r"(\d\d)(-.+)+")
+class Settings(Tap):
+    title: str
+    description: str = ""
+    nonschool: bool = False
+    student: str = "Ernest Izdebski"
 
+    ## extra type validation and such
+    def configure(self) -> None:
+        # this is called after class initialization
+        # make one arguments positional
+        self.add_argument("title")
 
-def get_highest():
-    """Returns the highest numbered project in this folder."""
-    current_highest: int = -1
-    for p in root.iterdir():
-        if not p.is_dir():
-            continue
-        match = _pattern.match(p.name)
-        if match:
-            n = int(match[1])
-            current_highest = max(current_highest, n)
-    return current_highest
+    def process_args(self) -> None:
+        # this is called after .parse_args
+        self.title = self.title.strip().replace(" ", "-").lower()
+        while not self.description:
+            print("A description was not provided. Please provide one:")
+            self.description = input().strip()
 
+    ## utils
+    def generate_cpp_file(self, unformatted_text=FILLER_TEXT) -> str:
+        date = datetime.now().strftime(r"%Y-%m-%d")
+        return unformatted_text.format(
+            STUDENT=self.student, DATE=date, DESCRIPTION=self.description
+        )
 
-def get_new_project_name():
-    """Asks for a project name if none is provided."""
-    import sys
+    def generate_new_proj_name(self, proj_folder: Path) -> Path:
+        # find highest numbered project
+        pattern = re.compile(r"(\d\d)n(-.+)+" if self.nonschool else r"(\d\d)(-.+)+")
+        highest: int = -1
 
-    res = sys.argv[1] if len(sys.argv) > 1 else input("Project name?  ")
-    return res.strip().replace(" ", "-").lower()
+        for path in proj_folder.iterdir():
+            if not path.is_dir():
+                continue
+            # change if newly found number exists & is higher than previous
+            match = pattern.match(path.name)
+            if match:
+                highest = max(highest, int(match[1]))
+
+        # begin composing response
+        resp = str(highest + 1).zfill(2)
+        if self.nonschool:
+            resp += "n"
+        resp += self.title
+
+        # make result a Path
+        return proj_folder / resp
 
 
 # get values
-num = str(get_highest() + 1).zfill(2)
-title = get_new_project_name()
-target = Path(f"{num}-{title}")
+root = Path(__file__).parent
+settings = Settings().parse_args()
 
-# make folder
-print("Creating folder at path:", target)
-target.mkdir()
+file_contents = settings.generate_cpp_file()
+target_folder = settings.generate_new_proj_name(root)
 
-# write to ./main.cpp
-main_file = target / "main.cpp"
-main_file.write_text(FILLER_TEXT)
-(target / "main.cpp").touch()
+# create files
+print("Creating folder at path:", target_folder)
+target_folder.mkdir()
+(target_folder / "main.cpp").write_text(file_contents)
