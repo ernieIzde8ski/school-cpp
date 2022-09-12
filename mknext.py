@@ -25,9 +25,9 @@ FILLER_TEXT = r"""/*
 #include <iostream>
 using namespace std;
 
-int main() {
+int main() {{
   cout << "Hello World!\n";
-}
+}}
 """
 
 
@@ -62,7 +62,7 @@ class Settings(Tap):
 
     def generate_new_proj_name(self, proj_folder: Path) -> Path:
         # find highest numbered project
-        pattern = re.compile(r"(\d\d)n(-.+)+" if self.nonschool else r"(\d\d)(-.+)+")
+        pattern = re.compile(r"n-(\d\d)(-.+)+" if self.nonschool else r"(\d\d)(-.+)+")
         highest: int = -1
 
         for path in proj_folder.iterdir():
@@ -73,11 +73,8 @@ class Settings(Tap):
             if match:
                 highest = max(highest, int(match[1]))
 
-        # begin composing response
-        resp = str(highest + 1).zfill(2)
-        if self.nonschool:
-            resp += "n"
-        resp += self.title
+        # compose response
+        resp = ("n-" if self.nonschool else "") + str(highest + 1).zfill(2) + "-" + self.title
 
         # make result a Path
         return proj_folder / resp
