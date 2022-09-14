@@ -14,7 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 from tap import Tap
-
+from textwrap import fill, wrap
 
 FILLER_TEXT = r"""/*
   {STUDENT}, {DATE}
@@ -52,6 +52,7 @@ class Settings(Tap):
         while not self.description:
             print("A description was not provided. Please provide one:")
             self.description = input().strip()
+        self.description = fill(self.description, subsequent_indent="  ")
 
     ## utils
     def generate_cpp_file(self, unformatted_text=FILLER_TEXT) -> str:
