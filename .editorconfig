@@ -15,3 +15,5 @@ cpp_indent_preserve_within_parentheses = false
 cpp_indent_namespace_contents = true
 # cpp_indent_access_specifiers = true
 cpp_indent_case_contents = true
+cpp_indent_lambda_braces_when_parameter = false
+cpp_space_before_lambda_open_parenthesis = false
