@@ -48,11 +48,15 @@ class Settings(Tap):
 
     def process_args(self) -> None:
         # this is called after .parse_args
-        self.title = self.title.strip().replace(" ", "-").lower()
         while not self.description:
             print("A description was not provided. Please provide one:")
-            self.description = input().strip()
-        self.description = fill(self.description, subsequent_indent="  ")
+            self.description = input().removeprefix("Write").strip()
+
+        self.title = self.title.strip().replace(" ", "-").lower()
+        # make first letter capitalized, split lines by width 70
+        self.description = fill(
+            self.description[:1].upper() + self.description[1:], subsequent_indent="  "
+        )
 
     ## utils
     def generate_cpp_file(self, unformatted_text=FILLER_TEXT) -> str:
@@ -75,7 +79,12 @@ class Settings(Tap):
                 highest = max(highest, int(match[1]))
 
         # compose response
-        resp = ("n-" if self.nonschool else "") + str(highest + 1).zfill(2) + "-" + self.title
+        resp = (
+            ("n-" if self.nonschool else "")
+            + str(highest + 1).zfill(2)
+            + "-"
+            + self.title
+        )
 
         # make result a Path
         return proj_folder / resp
