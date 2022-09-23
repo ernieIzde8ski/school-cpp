@@ -1,23 +1,40 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 
+## colored output stolen blatantly from SO:
+## https://unix.stackexchange.com/questions/9957/how-to-check-if-bash-can-print-colors
+if test -t 1; then
+    ncolors=$(tput colors)
+    if test -n "$ncolors" && test $ncolors -ge 8; then
+        red="$(tput setaf 1)"
+        normal="$(tput sgr0)"
+        standout="$(tput smso)"
+        red="$(tput setaf 1)"
+        green="$(tput setaf 2)"
+        blue="$(tput setaf 4)"
+    fi
+fi
+
+function error() {
+  echo "${red}${standout}$1${normal}" >&2;
+  exit ${2:-1}; # exit with default code 1 if not provided
+};
+
+
+# validate arguments
 dest="$1/main";
 source="$1/main.cpp";
 
-
-if [ -z "$1" ]
-  then
-    echo "No argument supplied!";
-    exit 1;
-elif [ ! -f "$source" ]
-    then
-        echo "File '$source' not found!";
-        exit 1;
+if [ -z "$1" ]; then
+  error "No argument supplied!";
+elif [ ! -f "$source" ]; then
+  error "File '$source' not found!";
 fi
 
 
-echo "Generating file...";
+# create file
+printf "${blue}Generating file...${normal}\n\n";
 make "$source" "$dest" && {
-  printf "\nRunning file: $dest\n\n";
+  printf "${green}\nRunning file: $dest\n\n${normal}";
   ./$dest;
 }

@@ -16,6 +16,15 @@ from pathlib import Path
 from tap import Tap
 from textwrap import fill, wrap
 
+import sys
+
+if sys.stdout.isatty():
+    from colors import red, green
+else:
+    def red(s, bg = None, style = None):
+        return s
+    green = red
+
 FILLER_TEXT = r"""/*
   {STUDENT}, {DATE}
 
@@ -49,7 +58,7 @@ class Settings(Tap):
     def process_args(self) -> None:
         # this is called after .parse_args
         while not self.description:
-            print("A description was not provided. Please provide one:")
+            print(red("A description was not provided. Please provide one:"))
             self.description = input().removeprefix("Write").strip()
 
         self.title = self.title.strip().replace(" ", "-").lower()
@@ -98,6 +107,6 @@ file_contents = settings.generate_cpp_file()
 target_folder = settings.generate_new_proj_name(root)
 
 # create files
-print("Creating folder at path:", target_folder)
+print(green(f"Creating folder at path: {target_folder}"))
 target_folder.mkdir()
 (target_folder / "main.cpp").write_text(file_contents)
