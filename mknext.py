@@ -59,10 +59,11 @@ class Settings(Tap):
         # this is called after .parse_args
         while not self.description:
             print(red("A description was not provided. Please provide one:"))
-            self.description = input().removeprefix("Write").strip()
+            self.description = input().strip()
 
         self.title = self.title.strip().replace(" ", "-").lower()
         # make first letter capitalized, split lines by width 70
+        self.description = self.description.removeprefix("Write").strip()
         self.description = fill(
             self.description[:1].upper() + self.description[1:], subsequent_indent="  "
         )
