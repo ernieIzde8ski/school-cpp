@@ -21,8 +21,10 @@ import sys
 if sys.stdout.isatty():
     from colors import red, green
 else:
-    def red(s, bg = None, style = None):
+
+    def red(s, bg=None, style=None):
         return s
+
     green = red
 
 FILLER_TEXT = r"""/*
