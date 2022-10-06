@@ -12,19 +12,24 @@
 
 
   while debugging, it may be useful to run:
-    for (( ; ; )) do printf '\n'; sleep 1; done | ./run 33-rock-paper-scissors/
-  to spam the Enter key into the script
+    for (( ; ; )) do printf '\n'; sleep 1; done | ./main
+  or:
+    yes '' | ./main
+  to spam the Enter key into the script repeatedly
 */
 
+// inclusions
 #include <iostream>
-#include <termios.h>
-#include <unistd.h>
-#include <vector>
 #include <map>
-
-#define elif else if
+#include <signal.h>
+#include <vector>
+#include "conio.h"
 
 using namespace std;
+
+// weep
+#define elif else if
+
 
 // rock, paper, and scissor constants
 enum RockPaperScissors { rock, paper, scissors };
@@ -37,6 +42,7 @@ string rps_names(RockPaperScissors& choice) {
   case paper: return "PAPER";
   case scissors: return "SCISSORS";
   }
+  return "ERROR";
 }
 
 // ANSI escape sequences, use any format + ANSI_NORMAL at the end to clear formatting
@@ -67,22 +73,6 @@ void error(string msg, int exit_code = 1) {
 void clear_console() {
   // https://paulschou.com/tools/ansi/escape.html
   cout << "\033[2J\033[1H";
-}
-
-
-// I don't understand how this function works, but its task is
-// to get a single char from console input, without having to write newlines
-// https://stackoverflow.com/questions/3276546/how-to-implement-getch-function-of-c-in-linux
-int getch(void) {
-  struct termios oldattr, newattr;
-  int ch;
-  tcgetattr(STDIN_FILENO, &oldattr);
-  newattr = oldattr;
-  newattr.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newattr);
-  ch = getchar();
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldattr);
-  return ch;
 }
 
 struct RPS_MenuItem {
@@ -126,15 +116,50 @@ void display_menu(vector<RPS_MenuItem> menu, string filler, int selected) {
   }
 }
 
+// global game variables, such that it can be accessed from exit function
+int games_played = 0;
+int player_wins = 0;
+int player_losses = 0;
+
+// display function called on exit
+void quit(int code = 0) {
+  cout << endl;
+
+  if (!games_played) {
+    // early exit in event of no games played
+    cout << ANSI_FG_MAGENTA << "goodbye!" << ANSI_NORMAL << endl;
+    exit(code);
+  };
+  
+  cout << "Total games:         " << ANSI_FG_BLUE << games_played << ANSI_NORMAL << endl;
+  cout << "Total player wins:   " << ANSI_FG_GREEN << player_wins << ANSI_NORMAL << endl;
+  cout << "Total player losses: " << ANSI_FG_RED << player_losses << ANSI_NORMAL << endl;
+
+  // calculate win/loss ratio before display
+  // player_wins must first be typecast to double to avoid flooring the value
+  // we use player_wins + player_losses instead of total_games because
+  // total_games includes tied games, which is unfair
+  double ratio = double(player_wins) / (player_wins + player_losses);
+
+  cout << "Win ratio:           " << ((ratio < .5) ? ANSI_BG_RED : ANSI_BG_GREEN) 
+    << ratio << "%" << ANSI_NORMAL << endl << endl; 
+  exit(code);
+}
+
 // determine result of rock paper scissors bet
+// increments globally scoped variables
 string rps_shoot(RockPaperScissors& choice) {
   RockPaperScissors computer_choice = random_rps();
+  
+  games_played++;
 
   if (RPS_Matchups[computer_choice] == choice) {
+    player_losses++;
     return ANSI_BG_MAGENTA + "SORRY,,," + ANSI_NORMAL + " COMPUTER CHOSE "
       + ANSI_BG_GREEN + rps_names(computer_choice) + " . . . " + ANSI_NORMAL
       + "\nYOU " + ANSI_BG_RED + "LOSE . . ." + ANSI_NORMAL;
   } elif(RPS_Matchups[choice] == computer_choice) {
+    player_wins++;
     return ANSI_BG_MAGENTA + "HOORAH ! " + ANSI_NORMAL + "The COMPUTER CHOSE "
       + ANSI_BG_RED + rps_names(computer_choice) + ANSI_NORMAL + " , \n"
       + ANSI_BG_GREEN + "YOU WIN !!!!  " + ANSI_NORMAL;
@@ -145,6 +170,9 @@ string rps_shoot(RockPaperScissors& choice) {
 }
 
 int main() {
+  // assign quit function to sigint handler
+  signal(SIGINT, quit);
+
   srand(time(0)); // initialize random number generator
   vector<RPS_MenuItem> rps_menu = { {"Rock", rock}, {"Paper", paper}, {"Scissors", scissors} };
 
@@ -154,24 +182,24 @@ int main() {
   int selected_entry = 0; // selected item in range [0, 3)
   const int selected_lower_bound_inclusive = 0; // selected should not go below 0
   const int selected_upper_bound_exclusive = 3; // selected should not equal or go above 3
-  int game_no = 0;
 
   // infinite loop (until forcibly broken)
   string premenu_line = "At Any point , press Q to exit";
   while (true) {
+    // prepare console output
     clear_console();
     cout << premenu_line << endl << endl;
     display_menu(rps_menu, filler, selected_entry);
-    cout << endl << ANSI_UNDERLINE << "Game #" << game_no << ANSI_NORMAL << endl;
+    cout << endl << ANSI_UNDERLINE << "Game #" << games_played << ANSI_NORMAL << endl;
 
+    // accept console input
     int choice = getch();
     if (choice == 'q' || choice == 'Q') break;
 
-
+    // begin evaluating console input
     if (choice == '\n') {
       // currently selected menu item has been chosen
       premenu_line = rps_shoot(rps_menu[selected_entry].value);
-      game_no++;
     } elif(choice == 27) {
       // arrow keys send the following three strokes:
       // 27 (Escape), 91 ('['), and one stroke in range [65, 69) ('A', 'B', 'C', 'D')
@@ -189,8 +217,7 @@ int main() {
           selected_entry = selected_lower_bound_inclusive; // wrap entry around
       };
     } else // in the event of an unrecognized keypress
-      premenu_line = ANSI_BG_RED + "what" + ANSI_NORMAL;
+      premenu_line = ANSI_BG_RED + "what" + ANSI_NORMAL + "\n" + ANSI_FG_RED + "(send an arrow key, enter, or 'q')" + ANSI_NORMAL;
   }
-
-  cout << endl << ANSI_FG_MAGENTA << "Goodbye!" << ANSI_NORMAL << endl;
+  quit();
 }
