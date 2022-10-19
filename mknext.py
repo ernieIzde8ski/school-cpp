@@ -12,6 +12,7 @@ if __name__ != "__main__":
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import Iterable
 
 from tap import Tap
 from textwrap import fill, wrap
@@ -41,6 +42,17 @@ int main() {{
 }}
 """
 
+def case_split(string: str) -> Iterable[str]:
+    buffer = ""
+    for s in string:
+        if s.isupper():
+            if buffer:
+                yield buffer
+            buffer = s.lower()
+        else:
+            buffer += s
+    if buffer:
+        yield buffer
 
 class Settings(Tap):
     title: str
@@ -63,7 +75,12 @@ class Settings(Tap):
             print(red("A description was not provided. Please provide one:"))
             self.description = input().strip()
 
-        self.title = self.title.strip().replace(" ", "-").lower()
+        self.title = self.title.strip().replace(" ", "-")
+        if self.title.endswith(".cpp"):
+            title = self.title.removesuffix(".cpp")
+            self.title = "-".join(case_split(title))
+        else:
+            self.title = self.title.lower()
         # make first letter capitalized, split lines by width 70
         self.description = self.description.removeprefix("Write").strip()
         self.description = fill(
