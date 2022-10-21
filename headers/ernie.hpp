@@ -5,6 +5,7 @@
 */
 
 #pragma once
+#include <iostream>
 
 namespace ernie {
 // simple input function
