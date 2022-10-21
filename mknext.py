@@ -10,17 +10,16 @@ if __name__ != "__main__":
 
 
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
+from textwrap import fill
 from typing import Iterable
 
 from tap import Tap
-from textwrap import fill, wrap
-
-import sys
 
 if sys.stdout.isatty():
-    from colors import red, green
+    from colors import green, red
 else:
 
     def red(s, bg=None, style=None):
@@ -35,11 +34,13 @@ FILLER_TEXT = r"""/*
 */
 
 #include <iostream>
+{HEADERS}
 
 int main() {{
   std::cout << "Hello World!\n";
 }}
 """
+
 
 def case_split(string: str) -> Iterable[str]:
     buffer = ""
@@ -53,44 +54,75 @@ def case_split(string: str) -> Iterable[str]:
     if buffer:
         yield buffer
 
+
 class Settings(Tap):
     title: str
+    """Folder name for new directory."""
     description: str = ""
+    """Description filled in at the top of the main.cpp file."""
     nonschool: bool = False
+    """If is not a homework assignment."""
     student: str = "Ernest Izdebski"
+    """Name of student."""
+    include_headers: list[str] = []
+    """Headers from headers/ directory to include in file. Linked symbolically."""
+    debug_settings: bool = False
+    """Output Settings class without doing anything."""
 
     ## extra type validation and such
+    # this is called after class initialization
     def configure(self) -> None:
-        # this is called after class initialization
         # make arguments positional/aliased
         self.add_argument("title")
         self.add_argument("-D", "--description")
         self.add_argument("-N", "--nonschool")
         self.add_argument("-S", "--student")
 
+        # headers need default arguments specified
+        self.add_argument("-H", "--include-headers", nargs="*", default=[])
+
     def process_args(self) -> None:
         # this is called after .parse_args
-        while not self.description:
-            print(red("A description was not provided. Please provide one:"))
-            self.description = input().strip()
 
+        # validate title
         self.title = self.title.strip().replace(" ", "-")
         if self.title.endswith(".cpp"):
             title = self.title.removesuffix(".cpp")
             self.title = "-".join(case_split(title))
         else:
             self.title = self.title.lower()
+
+        # assert description
+        while not self.description:
+            print(red("A description was not provided. Please provide one:"))
+            self.description = input().strip()
+
+        # validate description
         # make first letter capitalized, split lines by width 70
         self.description = self.description.removeprefix("Write").strip()
         self.description = fill(
             self.description[:1].upper() + self.description[1:], subsequent_indent="  "
         )
 
+        # validate headers
+        new_headers = set()
+        headir = Path("headers")
+        for header in self.include_headers:
+            header = header.removeprefix("headers/")
+            if not (headir / header).exists():
+                raise ValueError(f"Header 'headers/{header}' not found")
+            new_headers.add(header)
+        self.include_headers = sorted(new_headers)
+
     ## utils
     def generate_cpp_file(self, unformatted_text=FILLER_TEXT) -> str:
         date = datetime.now().strftime(r"%Y-%m-%d")
+        inclusions = (f'#include "{header}"' for header in self.include_headers)
         return unformatted_text.format(
-            STUDENT=self.student, DATE=date, DESCRIPTION=self.description
+            STUDENT=self.student,
+            DATE=date,
+            DESCRIPTION=self.description,
+            HEADERS="\n".join(inclusions),
         )
 
     def generate_new_proj_name(self, proj_folder: Path) -> Path:
@@ -120,7 +152,11 @@ class Settings(Tap):
 
 # get values
 root = Path(__file__).parent
-settings = Settings().parse_args()
+settings = Settings(underscores_to_dashes=True).parse_args()
+
+if settings.debug_settings:
+    print(settings)
+    exit()
 
 file_contents = settings.generate_cpp_file()
 target_folder = settings.generate_new_proj_name(root)
@@ -129,3 +165,15 @@ target_folder = settings.generate_new_proj_name(root)
 print(green(f"Creating folder at path: {target_folder}"))
 target_folder.mkdir()
 (target_folder / "main.cpp").write_text(file_contents)
+print("Done!")
+
+# create symbolic links to header files
+if settings.include_headers:
+    print("Creating symbolic links...")
+    import subprocess as sp
+
+    link_name = target_folder.name
+    for header in settings.include_headers:
+        command = ["ln", "-rs", "-T", f"headers/{header}", f"{link_name}/{header}"]
+        print("Command: ", command)
+        sp.run(command)
