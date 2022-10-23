@@ -69,4 +69,15 @@ template <typename T> int arrayHighestValueIndex(T arr[], int size) {
   };
   return index;
 }
+
+// random number generator in range [0, stop)
+int rand_int(int stop) {
+  return rand() % stop;
 }
+
+// random number generator in range [start, stop)
+int rand_int(int start, int stop) {
+  return rand_int(stop-start) + start;
+}
+
+} // end namespace ernie
