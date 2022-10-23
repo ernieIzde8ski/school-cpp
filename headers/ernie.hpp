@@ -6,6 +6,7 @@
 
 #pragma once
 #include <iostream>
+#define elif else if
 
 namespace ernie {
 // simple input function
@@ -78,6 +79,6 @@ int rand_int(int stop) {
 // random number generator in range [start, stop)
 int rand_int(int start, int stop) {
   return rand_int(stop-start) + start;
-}
+}  
 
 } // end namespace ernie
