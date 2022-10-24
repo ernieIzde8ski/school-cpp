@@ -6,12 +6,14 @@
 #include <string>
 
 namespace ANSI {
-    const std::string ESC = "\x1b[";
+    // https://en.wikipedia.org/wiki/ANSI_escape_code#Fe_Escape_sequences
+    const std::string ESC = "\x1b";
+    const std::string CSI = ESC + "[";
 
     // basic escape sequences
     // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
     std::string SGR(std::string code) {
-        return ESC + code + "m";
+        return CSI + code + "m";
     }
     std::string SGR(int code) {
         return SGR(std::to_string(code));
@@ -26,7 +28,7 @@ namespace ANSI {
         232-255:  grayscale from dark to light in 24 steps
     */
     std::string color256(std::string code, bool fg = true) {
-        return ESC + (fg ? "38:5:" : "48:5:") + code + "m";
+        return CSI + (fg ? "38:5:" : "48:5:") + code + "m";
     }
     std::string color256(int code, bool fg = true) {
         return color256(std::to_string(code), fg);
@@ -34,7 +36,7 @@ namespace ANSI {
 
     // consoles such as KDE's Konsole & GNOME Terminal support full 24-bit RGB
     std::string colorRGB(std::string red, std::string green, std::string blue, bool fg = true) {
-        return ESC + (fg ? "38;" : "48;") + "2;" + red + ";" + green + ";" + blue + "m";
+        return CSI + (fg ? "38;" : "48;") + "2;" + red + ";" + green + ";" + blue + "m";
     }
     std::string colorRGB(int red, int green, int blue, bool fg = true) {
         return colorRGB(
