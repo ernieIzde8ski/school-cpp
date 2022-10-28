@@ -35,6 +35,8 @@ fi
 # create file
 printf "${blue}Generating file...${normal}\n\n";
 make "$source" "$dest" && {
+  pushd "$1" > /dev/null;
   printf "${green}\nRunning file: $dest\n\n${normal}";
-  ./$dest;
+  ./main;
+  popd > /dev/null;
 }
