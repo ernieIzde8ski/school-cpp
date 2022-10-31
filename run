@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+if [ -z $1 ]; then
+    echo "no argument supplied!";
+    exit 1;
+elif [ ! -d $1 ]; then
+    echo "directory '$1' not found!";
+    exit 2;
+fi
+
+pushd $1;
+cargo run;
+popd;

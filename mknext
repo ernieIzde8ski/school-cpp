@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+
+"""
+Quickly handles creating the next directory.
+"""
+
+
+if __name__ != "__main__":
+    raise RuntimeError("mknext cannot be a module!")
+
+import subprocess
+from pathlib import Path
+from typing import Iterable
+
+from tap import Tap
+import sys
+
+if sys.stdout.isatty():
+    from colors import blue
+else:
+    def blue(s, bg=None, style=None):
+        return s
+
+
+ROOT = Path(__file__).parent
+
+
+def case_split(string: str) -> Iterable[str]:
+    buffer = ""
+    for s in string:
+        if s.isupper():
+            if buffer:
+                yield buffer
+            buffer = s.lower()
+        else:
+            buffer += s
+    if buffer:
+        yield buffer
+
+
+class ProjectSettings(Tap):
+    title: str
+    """Folder name for new directory."""
+    nonschool: bool = False
+    """If is not a homework assignment."""
+    debug_settings: bool = False
+    """Output Settings class without doing anything."""
+    number: int = -1
+    """Project number, minus one."""
+
+    ## extra type validation and such
+    def configure(self) -> None:
+        # make arguments positional/aliased
+        self.add_argument("title")
+        self.add_argument("-N", "--nonschool")
+        self.add_argument("-D", "--debug-settings")
+
+    def process_args(self) -> None:
+        self.title = "-".join(case_split(self.title.strip())).lower().replace(" ", "-")
+
+    @property
+    def dirname(self, root=ROOT):
+        """Generate folder path name for new project."""
+        # basically you just need to get the current number,
+        # increment by one, and append it to the title
+        num = self.number
+
+        if num == -1:
+            folder_names = (
+                i.name for i in root.iterdir() if i.is_dir() and i.name[:2].isnumeric()
+            )
+            for folder in folder_names:
+                num = max(num, int(folder[:2]))
+
+        # fstring majicks
+        # number padding with 0 as fill for 2 characters
+        return f"{num+1:02}-{self.title}"
+
+
+settings = ProjectSettings(underscores_to_dashes=True).parse_args()
+
+if settings.debug_settings:
+    print(settings)
+    exit(0)
+
+command: list[str] = ["cargo", "new", settings.dirname, "--name", settings.title]
+print(blue("> Executing command arguments: " + str(command)))
+subprocess.run(command)
