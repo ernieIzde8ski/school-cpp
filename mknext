@@ -43,6 +43,8 @@ class ProjectSettings(Tap):
     """Folder name for new directory."""
     nonschool: bool = False
     """If is not a homework assignment."""
+    modules: list[str] = []
+    """Modules to include."""
     debug_settings: bool = False
     """Output Settings class without doing anything."""
     number: int = -1
@@ -53,12 +55,26 @@ class ProjectSettings(Tap):
         # make arguments positional/aliased
         self.add_argument("title")
         self.add_argument("-N", "--nonschool")
+        self.add_argument("-M", "--modules", nargs="*", default=[])
         self.add_argument("-D", "--debug-settings")
 
     def process_args(self) -> None:
         self.title = "-".join(case_split(self.title.strip())).lower().replace(" ", "-")
+        
+        # validate modules
+        modules = ROOT / "modules"
+        for i, module_name in enumerate(self.modules):
+            if module_name.startswith("modules/"):
+                self.modules[i] = module_name = module.removeprefix("modules/")
+            if not module_name.endswith(".rs"):
+                raise ValueError(f"Module name '{module_name}' does not seem like a Rust file")
+            elif not (modules / module_name).exists():
+                raise ValueError(f"Local path '{module_name}' does not seem to exist")
+        
+        if self.debug_settings:
+            print(self)
+            exit()
 
-    @property
     def dirname(self, root=ROOT):
         """Generate folder path name for new project."""
         # basically you just need to get the current number,
@@ -79,10 +95,13 @@ class ProjectSettings(Tap):
 
 settings = ProjectSettings(underscores_to_dashes=True).parse_args()
 
-if settings.debug_settings:
-    print(settings)
-    exit(0)
+def execute_command(*args: str):
+    print(blue("> Executing command: " + str(args)))
+    proc = subprocess.run(args)
+    if proc.returncode != 0:
+        exit(proc.returncode)
 
-command: list[str] = ["cargo", "new", settings.dirname, "--name", settings.title]
-print(blue("> Executing command arguments: " + str(command)))
-subprocess.run(command)
+target = settings.dirname()
+execute_command("cargo", "new", target, "--name", settings.title)
+for module in settings.modules:
+    execute_command("ln", "-rs", "-T", f"modules/{module}", f"{target}/src/{module}")
