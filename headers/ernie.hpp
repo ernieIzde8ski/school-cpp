@@ -71,6 +71,14 @@ namespace ernie {
     return index;
   }
 
+  template <typename T> void displayArray(T arr[], int size, std::string prepend = "", std::string sep = "\t") {
+    std::cout << prepend << "[" << sep;
+    for (int i = 0; i < size; i++) {
+      std::cout << arr[i] << sep;
+    }
+    std::cout << "]\n";
+  }
+
   // random number generator in range [0, stop)
   int rand_int(int stop) {
     return rand() % stop;
