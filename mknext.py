@@ -10,6 +10,7 @@ if __name__ != "__main__":
 
 
 import re
+import subprocess as sp
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -165,15 +166,21 @@ target_folder = settings.generate_new_proj_name(root)
 print(green(f"Creating folder at path: {target_folder}"))
 target_folder.mkdir()
 (target_folder / "main.cpp").write_text(file_contents)
-print("Done!")
 
 # create symbolic links to header files
 if settings.include_headers:
     print("Creating symbolic links...")
-    import subprocess as sp
-
     link_name = target_folder.name
     for header in settings.include_headers:
         command = ["ln", "-rs", "-T", f"headers/{header}", f"{link_name}/{header}"]
         print("Command: ", command)
         sp.run(command)
+
+ass = str(target_folder / "assignment.txt")
+print("Opening assignment.txt file")
+
+sp.run(["touch", ass])  # makes autosave work by creating an existing file
+sp.run(["${EDITOR}", ass])
+sp.run(["chmod", "444", ass])  # make file unwriteable
+
+print("Done!")
