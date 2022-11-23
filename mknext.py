@@ -9,12 +9,14 @@ if __name__ != "__main__":
     raise RuntimeError("mknext.py cannot be a module!")
 
 
+from os import getenv
 import re
 import subprocess as sp
 import sys
 from datetime import datetime
 from pathlib import Path
 from textwrap import fill
+from time import sleep
 from typing import Iterable
 
 from tap import Tap
@@ -161,11 +163,12 @@ if settings.debug_settings:
 
 file_contents = settings.generate_cpp_file()
 target_folder = settings.generate_new_proj_name(root)
+target_file = target_folder / "main.cpp"
 
 # create files
 print(green(f"Creating folder at path: {target_folder}"))
 target_folder.mkdir()
-(target_folder / "main.cpp").write_text(file_contents)
+target_file.write_text(file_contents)
 
 # create symbolic links to header files
 if settings.include_headers:
@@ -176,11 +179,15 @@ if settings.include_headers:
         print("Command: ", command)
         sp.run(command)
 
-ass = str(target_folder / "assignment.txt")
-print("Opening assignment.txt file")
+ass = target_folder / "assignment.txt"
+ass.touch(mode=0o744)
 
-sp.run(["touch", ass])  # makes autosave work by creating an existing file
-sp.run(["${EDITOR}", ass])
-sp.run(["chmod", "444", ass])  # make file unwriteable
+if getenv("TERM_PROGRAM") == "vscode":
+    print("Opening assignment.txt file")
+    sp.run(["code", "--wait", str(ass)])  # open file in vscode
+    ass.chmod(0o444)
+    sp.run(("code", str(target_file), str(ass)))  # open main.cpp after all is said & done
+else:
+    print("VSCode not detected, please edit assignment.txt manually")
 
-print("Done!")
+print("All done!")
