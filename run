@@ -22,8 +22,8 @@ function error() {
 
 
 # validate arguments
-dest="$1/main";
-source="$1/main.cpp";
+dest="${1}/main";
+source="${1}/main.cpp";
 
 if [ -z "$1" ]; then
   error "No argument supplied!";
@@ -36,7 +36,12 @@ fi
 printf "${blue}Generating file...${normal}\n\n";
 make "$source" "$dest" && {
   pushd "$1" > /dev/null;
-  printf "${green}\nRunning file: $dest\n\n${normal}";
-  ./main;
+  mainArgs="${@: 2}"
+  printf "\n${green}Running file:   ${dest}\n";
+  if [ ! -z "$mainArgs" ]; then
+    printf "with arguments: ${mainArgs}\n"
+  fi
+    printf "${normal}\n"
+  ./main $mainArgs;
   popd > /dev/null;
 }
