@@ -1,0 +1,10 @@
+CircleStructure.cpp
+refer to structure videos.
+
+Create a program the stores the following data about a circle in a structure: 
+
+radius, diameter, area
+
+collect the diameter from the keyboard, and calculate the area.
+
+area = PI*pow(radius, 2.0)

@@ -1,0 +1,26 @@
+Create a program using the following structure:
+
+struct PayRoll
+
+{
+
+   int empNumber;    // Employee number
+
+   string name;          // Employee's name
+
+   double hours;     // Hours worked
+
+   double payRate;   // Hourly payRate
+
+   double grossPay;  // Gross Pay
+
+};
+
+1. In the main(), declare a variable Employee with data-type Payroll.
+2. from the main() Call a function called Payroll getinto() .  Get info will gather hours and payRate, as well as, calculate grossPay.  NOTE: input validations, make sure there is no negative hours entered, and make sure there is no negative payRate.
+
+3. Return the "Payroll" variable used in getInfo() to the call.
+
+4. From the main() display the content of employee.
+
+5. Have the program run until the user is finished using it.

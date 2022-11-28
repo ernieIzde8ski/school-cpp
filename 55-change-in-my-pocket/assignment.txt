@@ -1,0 +1,3 @@
+Extra Credit:  ChangeInMyPocket.cpp
+
+Write a program that allows the user to enter a number of quarters, dimes, and nickels and then Sends those four values to a function from the main().   The receiving function outputs the monetary value of the coins in cents.  For example, if the user enters 2 for the number of quarters, 3 for the number for dimes, and 1 for the number of nickels, then the program should output that the coins are worth 85 cents.
