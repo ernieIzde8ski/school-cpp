@@ -42,6 +42,6 @@ make "$source" "$dest" && {
     printf "with arguments: ${mainArgs}\n"
   fi
     printf "${normal}\n"
-  ./main $mainArgs;
+  ./main $mainArgs || printf "\nProcess exited with code $?\n";
   popd > /dev/null;
 }
