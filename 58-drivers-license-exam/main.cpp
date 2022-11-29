@@ -52,11 +52,12 @@ void gradeSolutions(char solutions[SOLUTIONS]) {
   int correctSolutions = 0;
 
   // print incorrect ones, accumulate number of correct solutions
-  for (int i = 0; i < SOLUTIONS; i++) {
+  // no need to increment, is incremented in the middle of the loop
+  for (int i = 0; i < SOLUTIONS;) {
     char studentChoice = solutions[i];
     char correctChoice = CORRECT_SOLUTIONS[i];
-    if (studentChoice == correctChoice) correctSolutions++;
-    else std::cout << "#" << i << ":\texpected " << correctChoice
+    if (studentChoice == correctChoice) correctSolutions++ && i++;
+    else std::cout << "#" << ++i << ":\texpected " << correctChoice
       << ", got " << studentChoice << std::endl;
   }
 
