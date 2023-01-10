@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Iterable
+
+from more_itertools import prepend
+from tap import Tap
+
+
+
+DEFAULT_FILE_CONTENTS = """/*
+    {STUDENT}
+    {DATE}
+
+    {DESCRIPTION}
+*/
+
+
+class {CLASSNAME} <<
+    public static void main(String[] args) <<
+        System.out.println("Hello, world");
+    >>
+>>
+"""
+
+SRC = Path(__file__).parent / "src"
+SRC.mkdir(exist_ok=True)
+
+
+def generate_main_java(
+    student: str, description: str, classname: str, dt_fmt=r"%Y-%m-%d"
+) -> str:
+    date = datetime.now().strftime(dt_fmt)
+    return (
+        DEFAULT_FILE_CONTENTS.format(
+            STUDENT=student, DATE=date, DESCRIPTION=description, CLASSNAME=classname
+        )
+        .replace("<<", "{")
+        .replace(">>", "}")
+    )
+
+
+def generate_Makefile(classname: str) -> str:
+    return f"""run: main.java
+\tjavac main.java
+\tjava {classname}
+"""
+
+
+class ConsoleArgs(Tap):
+    folder_name: str
+    class_name: str = ""
+    project_description: str = ""
+
+    student_name: str = "Ernest Izdebski"
+
+    ### validation
+
+    def configure(self) -> None:
+        self.add_argument("folder_name")
+        self.add_argument("-C", "--class-name")
+        self.add_argument("-D", "--project-description")
+        self.add_argument("-S", "--student-name")
+
+    @staticmethod
+    def camel_case_to_dash_split(text: str) -> str:
+        resp = text[:1].lower()
+        for s in text[1:]:
+            if s.isupper():
+                resp += "-"
+                resp += s.lower()
+            else:
+                resp += s
+        return resp
+
+    @staticmethod
+    def dash_split_to_camel_case(text: str) -> str:
+        next_upper = True
+        resp = str()
+        for s in text:
+            if s == "-":
+                next_upper = True
+            elif next_upper:
+                resp += s.upper()
+                next_upper = False
+            else:
+                resp += s
+        return resp
+
+    def process_args(self) -> None:
+        file_name = self.folder_name.strip().removesuffix(".java")
+        # ensure project_name exists
+        if not self.class_name:
+            if "-" in file_name or " " in file_name:
+                self.folder_name = file_name = file_name.lower().replace(" ", "-")
+                self.class_name = self.dash_split_to_camel_case(file_name)
+            else:
+                self.class_name = file_name
+                self.folder_name = self.camel_case_to_dash_split(file_name)
+        # ensure project_description exists
+        self.project_description = self.project_description.strip()
+        while not self.project_description:
+            print("description not given, reading from standard input", file=sys.stderr)
+            self.project_description = sys.stdin.read().strip()
+
+
+def get_directory_numbers() -> Iterable[int]:
+    for dir in SRC.iterdir():
+        if not dir.is_dir():
+            continue
+        n = dir.name.split(":", 1)[:1]
+        if n and n[0].isnumeric():
+            yield int(n[0])
+
+
+def get_target_dir(name: str) -> Path:
+    # gets a number that is at least zero
+    num = max(prepend(-1, get_directory_numbers())) + 1
+    name = str(num).rjust(2, "0") + ":" + name
+    return SRC / name
+
+
+def main():
+    args = ConsoleArgs(underscores_to_dashes=True).parse_args()
+
+    main_contents = generate_main_java(
+        student=args.student_name,
+        description=args.project_description,
+        classname=args.class_name,
+    )
+    makefile_contents = generate_Makefile(classname=args.class_name)
+
+    d_target = get_target_dir(args.folder_name)
+    d_target.mkdir()
+
+    (d_target / "main.java").write_text(main_contents)
+    (d_target / "Makefile").write_text(makefile_contents)
+
+    print("All done!")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,3 +1,6 @@
 .vscode/
 venv/
 CPTR 151 001 syllabus_202241_355.docx
+
+# java artifacts
+*.class
