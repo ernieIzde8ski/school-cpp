@@ -18,7 +18,7 @@ DEFAULT_FILE_CONTENTS = """/*
 */
 
 
-class {CLASSNAME} <<
+public class {CLASSNAME} <<
     public static void main(String[] args) <<
         System.out.println("Hello, world");
     >>
@@ -43,24 +43,22 @@ def generate_main_java(
 
 
 def generate_Makefile(classname: str) -> str:
-    return f"""run: main.java
-\tjavac main.java
-\tjava {classname}
-"""
+    return "\n".join((f"run: {classname}.java", f"\tjavac {classname}.java", f"\tjava {classname}", ""))
 
 
 class ConsoleArgs(Tap):
-    folder_name: str
-    class_name: str = ""
+    class_name: str 
+    folder_name: str = ""
     project_description: str = ""
 
     student_name: str = "Ernest Izdebski"
+    debug: bool = False
 
     ### validation
 
     def configure(self) -> None:
-        self.add_argument("folder_name")
-        self.add_argument("-C", "--class-name")
+        self.add_argument("class_name")
+        self.add_argument("-F", "--folder-name")
         self.add_argument("-D", "--project-description")
         self.add_argument("-S", "--student-name")
 
@@ -90,15 +88,17 @@ class ConsoleArgs(Tap):
         return resp
 
     def process_args(self) -> None:
-        file_name = self.folder_name.strip().removesuffix(".java")
-        # ensure project_name exists
-        if not self.class_name:
-            if "-" in file_name or " " in file_name:
-                self.folder_name = file_name = file_name.lower().replace(" ", "-")
-                self.class_name = self.dash_split_to_camel_case(file_name)
+        class_name = self.class_name.strip().removesuffix(".java")
+    
+        # ensure folder_name exists
+        if not self.folder_name:
+            if "-" in class_name or " " in class_name:
+                self.folder_name = class_name = class_name.lower().replace(" ", "-")
+                self.class_name = self.dash_split_to_camel_case(class_name)
             else:
-                self.class_name = file_name
-                self.folder_name = self.camel_case_to_dash_split(file_name)
+                self.class_name = class_name
+                self.folder_name = self.camel_case_to_dash_split(class_name)
+
         # ensure project_description exists
         self.project_description = self.project_description.strip()
         while not self.project_description:
@@ -125,6 +125,10 @@ def get_target_dir(name: str) -> Path:
 def main():
     args = ConsoleArgs(underscores_to_dashes=True).parse_args()
 
+    if args.debug:
+        print(args)
+        exit(0)
+
     main_contents = generate_main_java(
         student=args.student_name,
         description=args.project_description,
@@ -132,10 +136,10 @@ def main():
     )
     makefile_contents = generate_Makefile(classname=args.class_name)
 
-    d_target = get_target_dir(args.folder_name)
+    d_target = get_target_dir(args.class_name)
     d_target.mkdir()
 
-    (d_target / "main.java").write_text(main_contents)
+    (d_target / f"{args.class_name}.java").write_text(main_contents)
     (d_target / "Makefile").write_text(makefile_contents)
 
     print("All done!")

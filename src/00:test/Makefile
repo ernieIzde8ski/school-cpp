@@ -1,3 +1,3 @@
-run: main.java
-	javac main.java
-	java test
+run: Test.java
+	javac Test.java
+	java Test
