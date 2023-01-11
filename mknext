@@ -9,7 +9,6 @@ from more_itertools import prepend
 from tap import Tap
 
 
-
 DEFAULT_FILE_CONTENTS = """/*
     {STUDENT}
     {DATE}
@@ -43,11 +42,13 @@ def generate_main_java(
 
 
 def generate_Makefile(classname: str) -> str:
-    return "\n".join((f"run: {classname}.java", f"\tjavac {classname}.java", f"\tjava {classname}", ""))
+    return "\n".join(
+        (f"run: {classname}.java", f"\tjavac {classname}.java", f"\tjava {classname}", "")
+    )
 
 
 class ConsoleArgs(Tap):
-    class_name: str 
+    class_name: str
     folder_name: str = ""
     project_description: str = ""
 
@@ -89,7 +90,7 @@ class ConsoleArgs(Tap):
 
     def process_args(self) -> None:
         class_name = self.class_name.strip().removesuffix(".java")
-    
+
         # ensure folder_name exists
         if not self.folder_name:
             if "-" in class_name or " " in class_name:
@@ -100,10 +101,20 @@ class ConsoleArgs(Tap):
                 self.folder_name = self.camel_case_to_dash_split(class_name)
 
         # ensure project_description exists
-        self.project_description = self.project_description.strip()
-        while not self.project_description:
+        project_description = self.project_description.strip()
+        while not project_description:
             print("description not given, reading from standard input", file=sys.stderr)
-            self.project_description = sys.stdin.read().strip()
+            project_description = sys.stdin.read().strip()
+
+        # make project description lines a bit less long
+        if len(project_description) > 90:
+            import textwrap
+
+            self.project_description = "\n    ".join(
+                textwrap.wrap(project_description, width=70)
+            )
+        else:
+            self.project_description = project_description
 
 
 def get_directory_numbers() -> Iterable[int]:
@@ -136,7 +147,7 @@ def main():
     )
     makefile_contents = generate_Makefile(classname=args.class_name)
 
-    d_target = get_target_dir(args.class_name)
+    d_target = get_target_dir(args.folder_name)
     d_target.mkdir()
 
     (d_target / f"{args.class_name}.java").write_text(main_contents)
