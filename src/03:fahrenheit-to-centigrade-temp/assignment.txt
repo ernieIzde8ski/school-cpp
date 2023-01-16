@@ -1,0 +1,17 @@
+FahrenheitToCentigradeTemp.java
+
+A) Write a program that accepts a Fahrenheit temperature and outputs the equivalent centigrade temperature,  (15pts)
+
+
+a. Use a function to receive the Fahrenheit temperature,
+
+b. calculate the value in centigrade, and
+
+c. return the centigrade value for display
+
+d. Have the program continue until the user is finished using it.
+
+
+Celsius = 5/9*(Fahrenheit -32)  
+
+Use very good comments

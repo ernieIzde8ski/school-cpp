@@ -1,0 +1,5 @@
+AverageScore.java
+
+Write a java program that will accept three values from the keyboard, add them together and divide by three to get the average.  Display the average to the screen.
+
+Remember to use very good comments

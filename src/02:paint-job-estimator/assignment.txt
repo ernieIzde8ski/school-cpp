@@ -1,0 +1,15 @@
+PaintJobEstimator.java
+
+AU's painting department has determined that for ever 115 square feet of wall space, one gallon of paint and eight hours of labor will be required.  Departments are charged $18.00 per hour for labor.  You are asked to write a program that allows departments  to enter the number of rooms to be painted and the price per of paint per gallon.  It should also ask for the square feet of wall space in each room.  The program should have methods that return the following Data:
+
+*Method that returns: The number of gallons of paint required
+
+*Method that returns: the hours of labor required
+
+*Method that returns: the cost of paint
+
+*Method that returns: the labor charges
+
+*Method that returns: the total cost of the paint job 
+
+Then it should display the data. on the screen.
