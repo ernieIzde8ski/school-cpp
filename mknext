@@ -43,7 +43,12 @@ def generate_main_java(
 
 def generate_Makefile(classname: str) -> str:
     return "\n".join(
-        (f"run: {classname}.java", f"\tjavac {classname}.java", f"\tjava {classname}", "")
+        (
+            f"run: {classname}.java",
+            f"\tjavac -encoding UTF-8 {classname}.java",
+            f"\tjava {classname}",
+            "",
+        )
     )
 
 
