@@ -1,0 +1,3 @@
+EmployeeHoursArray.java
+
+Write a program that will create an array of 10 employees.  The program will accept the ours they worked in an array of hours, and then display those hours.  This will be the a foundation to use for other operations on the array.
