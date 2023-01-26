@@ -1,0 +1,13 @@
+AllArray.java
+
+Create a AllArrayClass that has the following methods
+
+CreateArray - using random numbers
+
+DisplayArray
+
+SequentialSearch 
+
+BubbleSort 
+
+recursivebinarysearch
