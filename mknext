@@ -24,6 +24,15 @@ public class {CLASSNAME} <<
 >>
 """
 
+DEFAULT_MAKEFILE_CONTENTS = """run: {CLASSNAME}.java
+    javac -encoding UTF-8 {CLASSNAME}.java
+    java {CLASSNAME}
+
+format: {CLASSNAME}.java
+    astyle -Oo --convert-tabs --max-code-length=90 --remove-braces \\
+	--delete-empty-lines --pad-header *.java
+""".replace("    ", "\t")
+
 SRC = Path(__file__).parent / "src"
 SRC.mkdir(exist_ok=True)
 
@@ -42,14 +51,7 @@ def generate_main_java(
 
 
 def generate_Makefile(classname: str) -> str:
-    return "\n".join(
-        (
-            f"run: {classname}.java",
-            f"\tjavac -encoding UTF-8 {classname}.java",
-            f"\tjava {classname}",
-            "",
-        )
-    )
+    return DEFAULT_MAKEFILE_CONTENTS.format(CLASSNAME=classname)
 
 
 class ConsoleArgs(Tap):

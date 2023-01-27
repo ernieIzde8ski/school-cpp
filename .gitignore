@@ -4,3 +4,5 @@ CPTR 151 001 syllabus_202241_355.docx
 
 # java artifacts
 *.class
+# astyle output
+*.java.orig
