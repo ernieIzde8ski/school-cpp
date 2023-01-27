@@ -1,0 +1,15 @@
+Rectangle.java
+
+In Class we created two classes.  RectangleDemo.java & Rectangle.java.
+
+Recreate these programs.  First Rectangle.java 
+
+NOTE: hand each one into their respective HW designations on learning hub, but only after you have the programs communicating with each other and working very well.
+
+---
+
+RectangleDemo.java
+In Class we created two classes.  RectangleDemo.java & Rectangle.java.
+
+Recreate these programs.  First Rectangle.java, then create RectangleDemo.java.  RectangleDemo.java will use the "new" memory allocation to launch Rectangle.java from the HardDrive and establish it as an object.
+
