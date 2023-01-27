@@ -59,6 +59,7 @@ class ConsoleArgs(Tap):
 
     student_name: str = "Ernest Izdebski"
     debug: bool = False
+    to_stdout: bool = False
 
     ### validation
 
@@ -142,7 +143,7 @@ def main():
     args = ConsoleArgs(underscores_to_dashes=True).parse_args()
 
     if args.debug:
-        print(args)
+        print(args, file=sys.stderr)
         exit(0)
 
     main_contents = generate_main_java(
@@ -150,6 +151,11 @@ def main():
         description=args.project_description,
         classname=args.class_name,
     )
+
+    if args.to_stdout:
+        print(main_contents)
+        exit(0)
+
     makefile_contents = generate_Makefile(classname=args.class_name)
 
     d_target = get_target_dir(args.folder_name)
@@ -158,7 +164,7 @@ def main():
     (d_target / f"{args.class_name}.java").write_text(main_contents)
     (d_target / "Makefile").write_text(makefile_contents)
 
-    print("All done!")
+    print("All done!", file=sys.stderr)
 
 
 if __name__ == "__main__":
