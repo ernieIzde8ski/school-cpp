@@ -1,0 +1,7 @@
+The USS Defiant (NX-74205) was built in 2366.
+
+The USS Enterprise (NCC-1701-D) was built in 2363 and at one point had a crew of 1014.
+
+The USS Voyager (NCC-74656) was built in 2371 and reportedly could
+host a crew of up to 200. I will set it to 5000 gross tons, but this
+is an absolutely arbitrary number.

@@ -1,0 +1,47 @@
+We're going to be define a ship and 2 different types of ships in this program.
+
+Ship.java
+
+Design a ship class. 
+
+- Add a field for the name of the ship (a string)
+- Add a field for the year that the ship was built (a string)
+- Add a constructor
+- Add appropriate accessors and mutators
+- Add a toString method that displays the ship’s name and the year it was built
+
+
+CruiseShip.java
+
+Design a CruiseShip class that extends the Ship class.
+
+- Add a field for the maximum number of passengers (an int)
+- Add a constructor
+- Add appropriate accessors and mutators
+- Add a toString method that overrides the toString method in the base class. 
+  - The CruiseShip class’s toString method should display only the ship’s name and the maximum number of passengers.
+
+
+CargoShip.java
+
+Design a CargoShip class that extends the Ship class.
+
+- A field for the cargo capacity in tonnage (an int).
+- Add a constructor
+- Add appropriate accessors and mutators
+- Add a toString method that overrides the toString method in the base class.
+  - The CargoShip class’s toString method should display only the ship’s name and the ship’s cargo capacity.
+
+
+ShipDemo.java
+
+We're going to be demoing all three of your ship programs using an array.
+
+- Create a Ship array.
+- Assign various Ship, CruiseShip, and CargoShip objects to the array elements.
+- Your program should then step through the array, calling each object’s toString method.
+
+
+I've attached a UML to help.
+
+Turn in all 4 programs when finished
