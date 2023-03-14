@@ -5,7 +5,6 @@
     A demo of the LinkedList class.
 */
 
-import java.util.Arrays;
 
 // constants for LinkedListDemo.main
 class Constants {
