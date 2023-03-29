@@ -9,7 +9,7 @@ from more_itertools import prepend
 from tap import Tap
 
 
-DEFAULT_FILE_CONTENTS = """/*
+FILE_FORMAT_MAIN = """/*
     {STUDENT}
     {DATE}
 
@@ -18,31 +18,45 @@ DEFAULT_FILE_CONTENTS = """/*
 
 
 public class {CLASSNAME} <<
+    // put code here
+>>
+"""
+
+FILE_FORMAT_DEMO = """/*
+    {STUDENT}
+    {DATE}
+
+    A demo of {CLASSNAME}.
+*/
+
+public class {CLASSNAME}Demo <<
     public static void main(String[] args) <<
         System.out.println("Hello, world");
     >>
 >>
 """
 
-DEFAULT_MAKEFILE_CONTENTS = """run: *.java
+# fmt: off
+FILE_FORMAT_MAKEFILE = """run: *.java
     javac -encoding UTF-8 *.java
-    java {CLASSNAME}.java
+    java {CLASSNAME}Demo.java
 
 format: *.java
     astyle -Oo --convert-tabs --max-code-length=90 --remove-braces \\
 	--delete-empty-lines --pad-header *.java
-""".replace("    ", "\t")
+""".replace("    ", "\t") 
+# fmt: on
 
-SRC = Path(__file__).parent / "src"
+
+SRC = Path(__file__).with_name("src")
 SRC.mkdir(exist_ok=True)
 
 
-def generate_main_java(
-    student: str, description: str, classname: str, dt_fmt=r"%Y-%m-%d"
+def generate_java(
+    student: str, description: str, classname: str, date: str, fmt: str = FILE_FORMAT_MAIN
 ) -> str:
-    date = datetime.now().strftime(dt_fmt)
     return (
-        DEFAULT_FILE_CONTENTS.format(
+        fmt.format(
             STUDENT=student, DATE=date, DESCRIPTION=description, CLASSNAME=classname
         )
         .replace("<<", "{")
@@ -51,7 +65,7 @@ def generate_main_java(
 
 
 def generate_Makefile(classname: str) -> str:
-    return DEFAULT_MAKEFILE_CONTENTS.format(CLASSNAME=classname)
+    return FILE_FORMAT_MAKEFILE.format(CLASSNAME=classname)
 
 
 class ConsoleArgs(Tap):
@@ -148,23 +162,40 @@ def main():
         print(args, file=sys.stderr)
         exit(0)
 
-    main_contents = generate_main_java(
-        student=args.student_name,
-        description=args.project_description,
-        classname=args.class_name,
-    )
+    date = datetime.now().strftime(r"%Y-%m-%d")
+
+    file_contents = {
+        f"{args.class_name}.java": generate_java(
+            student=args.student_name,
+            description=args.project_description,
+            classname=args.class_name,
+            date=date,
+            fmt=FILE_FORMAT_MAIN,
+        ),
+        f"{args.class_name}Demo.java": generate_java(
+            student=args.student_name,
+            description=args.project_description,
+            classname=args.class_name,
+            date=date,
+            fmt=FILE_FORMAT_DEMO,
+        ),
+        "Makefile": generate_Makefile(classname=args.class_name),
+    }
 
     if args.to_stdout:
-        print(main_contents)
+        for k, v in file_contents.items():
+            print("┌" + ("─" * 19))
+            print("│", k)
+            print("│\n")
+            print(v)
         exit(0)
 
-    makefile_contents = generate_Makefile(classname=args.class_name)
+    target_dir = get_target_dir(args.folder_name)
+    target_dir.mkdir()
 
-    d_target = get_target_dir(args.folder_name)
-    d_target.mkdir()
-
-    (d_target / f"{args.class_name}.java").write_text(main_contents)
-    (d_target / "Makefile").write_text(makefile_contents)
+    for fp, contents in file_contents.items():
+        (target_dir / fp).write_text(contents)
+        print("Wrote to", fp, file=sys.stderr)
 
     print("All done!", file=sys.stderr)
 
