@@ -1,4 +1,6 @@
-run: *.java
+.PHONY: format
+
+BinaryTreeDemo.class: *.java
 	javac -encoding UTF-8 *.java
 	java BinaryTreeDemo.java
 
